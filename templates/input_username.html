@@ -1,28 +1,93 @@
-<form method="POST">
+<html>
+  <style>
+    html, body{
+      background-color: #222430;
+      height:60%;
+      width:100%;
+      margin:0;
+    }
+    body, form{
+      display:flex;
+    }
+    form, header {
+      margin:auto
+    }
+    .line-input {
+      width:100%;
+      height:20%;
+      text-align:center;
+      font-size: 42px;
+    }
+    ::placeholder{
+      color: black;
+    }
+    .btn-block{
+      width:50%;
+      height:10%;
+      margin-top: 24px;
+      font-size: 32px;
+      transform: translate(50%);
+      background-color: #747474;
+      color:#000000;
+    }
+    h3{
+      width: 100%;
+      text-align:center;
+      color:white;
+      margin:0;
+      font-size: 24px;
+    }
+    h1 {
+      color:white;
+      margin-bottom: 10%;
+      font-size: 82px;
+    }
+    .wordfreq {
+      margin-top: 24px;
+    }
+  </style>
+  
+  <head> 
+    <title>Twitter Word Cloud</title> 
+  </head> 
 
-  <div class="form-inline">
-    <div class="form-group">
-      <input type="text" class="line-input" name="username" placeholder="Username">
-    </div>
-    <div class="form-group">
-      <input type="text" class="line-input" name="startdate" placeholder="Start YYYY-MM-DD">
-    </div>
-    <div class="form-group">
-      <input type="text" class="line-input" name="enddate" placeholder="End YYYY-MM-DD">
-    </div>
-    <div class="form-group">
-      <input type="number" class="line-input" name="frequency" placeholder="Minimum Word Count">
-    </div>
-    <div class="form-group">
-      <input type="text" class="line-input" name="jsonl" placeholder="Jsonl Link (Default: False)">
-    </div>
-    <div class="form-group">
-      <input type="text" class="line-input" name="csv" placeholder="CSV Link (Default: False)">
-    </div>
-  </div>
+  <body>
+    <form method="POST">
+      <div class="form-inline">
+        <h1>Twitter Word Cloud</h1>
+        <div class="form-group">
+          <input type="text" class="line-input" name="username" placeholder="Username">
+        </div>
+        
+        <div class="form-group">
+          <h3>Start Date</h3>
+          <input type="date" class="line-input" id="start" name="startdate" placeholder="Start YYYY-MM-DD">
+        </div>                            
+        
+        <div class="form-group">
+          <h3>End Date</h3>
+          <input type="date" class="line-input" name="enddate" placeholder="End YYYY-MM-DD">
+        </div>
+        
+        <div class="form-group">
+          <div class="wordfreq">                  
+            <input type="number" class="line-input" name="frequency" placeholder="Minimum Word Count">
+          </div>
+        </div>
 
-  <div class=" form-group">
-    <button type="submit" class="btn btn-light text-primary btn-block" style="margin : 20px 20px -10px 0px">Submit</button>
-  </div>
+      <!--
+        <div class="form-group">
+          <input type="text" class="line-input" name="jsonl" placeholder="Jsonl Link (Default: False)">
+        </div>
 
-</form>
+        <div class="form-group">
+          <input type="text" class="line-input" name="csv" placeholder="CSV Link (Default: False)">
+        </div>
+        -->        
+                                                                                      
+        <div class="form-group">                                                        
+          <button type="submit" class="btn btn-light text-primary btn-block">Generate!</button>
+        </div>
+    </form>
+  </body>                                 
+</html>
