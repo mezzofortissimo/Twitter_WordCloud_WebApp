@@ -5,21 +5,31 @@ import json
 from datetime import date, timedelta, datetime
 import datetime
 
+############################################
+# First:
+#   main()
+# Then: 
+#   insert_data_to_table(table, _date, _dict)
+#     or
+#   update_dictionary(_dict, _list, table, start_date, end_date)
+# Finally:
+#   close()
+#############################################
 
-def connect_to_database(database): #working
+def connect_to_database(database):
   conn = sqlite3.connect(database)
   print("Connection Successful")
   cur = conn.cursor()
   return conn, cur
 
-def table_exists(name): #working
+def table_exists(name):
   query = "SELECT name FROM sqlite_master WHERE type='table' AND name='{}'".format(name)
   if cur.execute(query).fetchone():
     return True
   else:
     return False
 
-def create_table(name): #working
+def create_table(name):
   if not table_exists(name):
     query = 'CREATE TABLE {} (DATE TEXT PRIMARY KEY NOT NULL, DICT TEXT NOT NULL)'.format(name)
     cur.execute(query)
@@ -28,7 +38,7 @@ def create_table(name): #working
   else:
     print("Table not Created")
 
-def insert_data_to_table(table, _date, _dict): #working
+def insert_data_to_table(table, _date, _dict):
   if not table_exists(table):
     create_table(table)
 
@@ -43,21 +53,21 @@ def insert_data_to_table(table, _date, _dict): #working
     print("Data not Added")
   conn.commit()
 
-def retrieve_row_from_table(table, row): #working
+def retrieve_row_from_table(table, row):
   _dict = json.loads(row[1])
   _date = strip_date(row[0])
   return _date, _dict
 
-def retrieve_table(table): #working
+def retrieve_table(table):
   query = "SELECT DATE, DICT from {} ORDER BY DATE".format(table)
   cur.execute(query)
   text=cur.fetchall()
   return text
 
-def strip_date(date): #working
+def strip_date(date):
   return date.replace("'", "")
 
-def update_dictionary(_dict, _list, table, start_date, end_date): #working  
+def update_dictionary(_dict, _list, table, start_date, end_date): 
   query = "SELECT DATE, DICT from {} WHERE DATE BETWEEN '{}' AND '{}' ORDER BY DATE".format(table, start_date, end_date)
   data = cur.execute(query)
 
@@ -79,7 +89,7 @@ def update_dictionary(_dict, _list, table, start_date, end_date): #working
   for date in date_gaps(date_list):
     _list.append(date)  
   
-def date_gaps(dates): #working
+def date_gaps(dates):
   date_gaps = []
   _ = dates
   date_set = set(_[0] + timedelta(x) for x in range((_[-1] - _[0]).days))
@@ -102,11 +112,11 @@ def date_gaps(dates): #working
 
   return date_gaps
 
-def close(): #working
+def close():
   conn.close()
   print("Connection Closed")
 
-def main(): #working
+def main():
   global conn, cur
   conn, cur = connect_to_database('twitter_users')
 
