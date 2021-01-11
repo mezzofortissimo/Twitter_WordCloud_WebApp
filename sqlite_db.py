@@ -38,7 +38,7 @@ def create_table(name):
   else:
     print("Table not Created")
 
-def insert_data_to_table(table, _date, _dict):
+def insert_data_to_row(table, _date, _dict):
   if not table_exists(table):
     create_table(table)
 
