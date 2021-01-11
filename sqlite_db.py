@@ -9,9 +9,9 @@ import datetime
 # First:
 #   main()
 # Then: 
-#   insert_data_to_table(table, _date, _dict)
+#   add_data_to_row(table, _date, _dict)
 #     or
-#   update_dictionary(_dict, _list, table, start_date, end_date)
+#   retrieve_table_data(_dict, _list, table, start_date, end_date)
 # Finally:
 #   close()
 #############################################
@@ -38,7 +38,7 @@ def create_table(name):
   else:
     print("Table not Created")
 
-def insert_data_to_row(table, _date, _dict):
+def add_data_to_row(table, _date, _dict):
   if not table_exists(table):
     create_table(table)
 
@@ -67,7 +67,7 @@ def retrieve_table(table):
 def strip_date(date):
   return date.replace("'", "")
 
-def update_dictionary(_dict, _list, table, start_date, end_date): 
+def retrieve_table_data(_dict, _list, table, start_date, end_date): 
   query = "SELECT DATE, DICT from {} WHERE DATE BETWEEN '{}' AND '{}' ORDER BY DATE".format(table, start_date, end_date)
   data = cur.execute(query)
 
