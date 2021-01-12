@@ -71,29 +71,28 @@ def retrieve_table_data(_dict, _list, table, start_date, end_date):
   query = "SELECT DATE, DICT from {} WHERE DATE BETWEEN '{}' AND '{}' ORDER BY DATE".format(table, start_date, end_date)
   data = cur.execute(query)
 
-  count = 0
-  date_list = []
+  _start = datetime.datetime.strptime(start_date, '%Y-%m-%d').date() - timedelta(days=1)
+  _end = datetime.datetime.strptime(end_date, '%Y-%m-%d').date() + timedelta(days=1)
+  date_list = [_start, _end]
+
+
   for row in data:
     _date, table_dict = retrieve_row_from_table(table, row)
     _dict.update(table_dict)
-    count += 1
-    
     dt = datetime.datetime.strptime(_date, '%Y-%m-%d').date()
     date_list.append(dt)
 
-  if count > 0:
-    print("{} entries added to dictionary".format(count))
-  else:
-    print("No entries added to dictionary")
-
   for date in date_gaps(date_list):
-    _list.append(date)  
+    _list.append(date)
   
 def date_gaps(dates):
   date_gaps = []
   _ = dates
+  _.sort()
   date_set = set(_[0] + timedelta(x) for x in range((_[-1] - _[0]).days))
+
   missing = sorted(date_set - set(_))
+  #print(missing)
 
   i = 0
   for date in missing:

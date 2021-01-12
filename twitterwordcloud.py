@@ -131,7 +131,7 @@ def make_wordcloud(filename):
     for tweet in tweet_list:
       filter_tweets(tweet, uninteresting_words, punctuations)
 
-  final_word_frequency = {}
+  final_word_frequency = {} #append db dict here
   for key, value in word_frequency.items():
     try:
       if value >= args['frequency']:
