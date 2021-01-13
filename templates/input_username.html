@@ -5,6 +5,7 @@
       height:60%;
       width:100%;
       margin:0;
+      z-index: -2;
     }
     body, form{
       display:flex;
@@ -45,6 +46,15 @@
     .wordfreq {
       margin-top: 24px;
     }
+    #loading {
+      background: url(./static/load_animation.gif) no-repeat center center;
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      display: none;
+    }
   </style>
   
   <head> 
@@ -52,7 +62,10 @@
   </head> 
 
   <body>
-    <form method="POST">
+    <div id="loading"></div>
+
+  
+    <form id = "content" method="POST">
       <div class="form-inline">
         <h1>Twitter Word Cloud</h1>
         <div class="form-group">
@@ -86,8 +99,17 @@
         -->        
                                                                                       
         <div class="form-group">                                                        
-          <button type="submit" class="btn btn-light text-primary btn-block">Generate!</button>
+          <button type="submit" class="btn btn-light text-primary btn-block" value="Submit" onclick="loading()">Generate!</button>
         </div>
     </form>
+
+    <script>
+      function loading(){
+        var _l = document.getElementById("loading");
+        _l.style.display = "block"
+        var _c = document.getElementById("content");
+        _c.style.display = "none"
+      }
+     </script>
   </body>                                 
 </html>

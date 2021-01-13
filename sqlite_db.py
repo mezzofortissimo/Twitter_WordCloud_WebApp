@@ -4,6 +4,7 @@ import sqlite3
 import json
 from datetime import date, timedelta, datetime
 import datetime
+from collections import Counter
 
 ############################################
 # First:
@@ -17,6 +18,8 @@ import datetime
 #############################################
 
 def connect_to_database(database):
+  global conn, cur
+  #conn, cur = connect_to_database('twitter_users')
   conn = sqlite3.connect(database)
   print("Connection Successful")
   cur = conn.cursor()
@@ -34,9 +37,9 @@ def create_table(name):
     query = 'CREATE TABLE {} (DATE TEXT PRIMARY KEY NOT NULL, DICT TEXT NOT NULL)'.format(name)
     cur.execute(query)
     conn.commit()
-    print("Table Created")
+    print("Table created for user: {}".format(name))
   else:
-    print("Table not Created")
+    print("Using existing user table: {}".format(name))
 
 def add_data_to_row(table, _date, _dict):
   if not table_exists(table):
@@ -48,9 +51,10 @@ def add_data_to_row(table, _date, _dict):
   query = 'INSERT INTO {} (DATE, DICT) VALUES ({}, {})'.format(table, _date, converted_dict)
   try:
     cur.execute(query)
-    print("Data Added")
+    #print("Data added to {}".format(_date))
   except sqlite3.IntegrityError:
-    print("Data not Added")
+    pass
+    #print("Data not added to {}".format(_date))
   conn.commit()
 
 def retrieve_row_from_table(table, row):
@@ -67,48 +71,69 @@ def retrieve_table(table):
 def strip_date(date):
   return date.replace("'", "")
 
-def retrieve_table_data(_dict, _list, table, start_date, end_date): 
-  query = "SELECT DATE, DICT from {} WHERE DATE BETWEEN '{}' AND '{}' ORDER BY DATE".format(table, start_date, end_date)
-  data = cur.execute(query)
+def retrieve_table_data(_dict, _list, table, start_date, end_date):
+  _start = datetime.datetime.strptime(start_date, '%Y-%m-%d').date() - timedelta(days=0)
+  _end = datetime.datetime.strptime(end_date, '%Y-%m-%d').date() + timedelta(days=0)
+  date_list=[]
+  if table_exists(table):
+    query = "SELECT DATE, DICT from {} WHERE DATE BETWEEN '{}' AND '{}' ORDER BY DATE".format(table, start_date, end_date)
+    data = cur.execute(query)
 
-  _start = datetime.datetime.strptime(start_date, '%Y-%m-%d').date() - timedelta(days=1)
-  _end = datetime.datetime.strptime(end_date, '%Y-%m-%d').date() + timedelta(days=1)
-  date_list = [_start, _end]
+    
+    #date_list = [_start, _end]
+    date_list=[]
+    _ = {}
+    for row in data:
+      _date, table_dict = retrieve_row_from_table(table, row)
+      _ = dict(Counter(_) + Counter(table_dict))
+      dt = datetime.datetime.strptime(_date, '%Y-%m-%d').date()
+      date_list.append(dt)
+    _dict.update(_)
+    
+    for date in date_gaps(date_list, _start, _end):
+      _list.append(date)
+  else:
+    print("Table does not exist user: {}".format(table))
+    _list.extend([_start, _end])
+  return date_list
 
-
-  for row in data:
-    _date, table_dict = retrieve_row_from_table(table, row)
-    _dict.update(table_dict)
-    dt = datetime.datetime.strptime(_date, '%Y-%m-%d').date()
-    date_list.append(dt)
-
-  for date in date_gaps(date_list):
-    _list.append(date)
   
-def date_gaps(dates):
+def date_gaps(dates, _start, _end):
   date_gaps = []
+  #print("Start", _start, "End", _end)
   _ = dates
+  _.append(_start - timedelta(days=1))
+  _.append(_end + timedelta(days=1))
   _.sort()
+  #print("Date List", _)
   date_set = set(_[0] + timedelta(x) for x in range((_[-1] - _[0]).days))
 
   missing = sorted(date_set - set(_))
-  #print(missing)
+  #print("Missing", missing)
 
   i = 0
-  for date in missing:
-    if i < len(missing) - 1:
-      if i == 0:
-        date_gaps.append(missing[i])
-        i += 1
-      else:
-        x = abs(date - missing[i - 1])
-        if x > timedelta(days=1):
-          date_gaps.append(missing[i - 1])
+  if len(missing) == 1:
+    date_gaps.append(missing[i])
+    date_gaps.append(missing[i])
+  if len(missing) == 2:
+    date_gaps.append(missing[i])
+    date_gaps.append(missing[i])
+    date_gaps.append(missing[i+1])
+    date_gaps.append(missing[i+1])
+  elif len(missing) > 2:
+    for date in missing:
+      if i < len(missing) - 1:
+        if i == 0:
           date_gaps.append(missing[i])
-        i += 1
-    else:
-      date_gaps.append(missing[i])
-
+          i += 1
+        else:
+          x = abs(date - missing[i - 1])
+          if x > timedelta(days=1):
+            date_gaps.append(missing[i - 1])
+            date_gaps.append(missing[i])
+          i += 1
+      else:
+        date_gaps.append(missing[i])
   return date_gaps
 
 def close():
