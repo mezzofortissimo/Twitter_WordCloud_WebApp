@@ -71,7 +71,10 @@ def retrieve_table(table):
 def strip_date(date):
   return date.replace("'", "")
 
-def retrieve_table_data(_dict, _list, table, start_date, end_date):
+#def retrieve_table_data(_dict, _list, table, start_date, end_date):
+def retrieve_table_data(table, start_date, end_date):
+  _dict = {}
+  _list = []
   _start = datetime.datetime.strptime(start_date, '%Y-%m-%d').date() - timedelta(days=0)
   _end = datetime.datetime.strptime(end_date, '%Y-%m-%d').date() + timedelta(days=0)
   date_list=[]
@@ -79,8 +82,6 @@ def retrieve_table_data(_dict, _list, table, start_date, end_date):
     query = "SELECT DATE, DICT from {} WHERE DATE BETWEEN '{}' AND '{}' ORDER BY DATE".format(table, start_date, end_date)
     data = cur.execute(query)
 
-    
-    #date_list = [_start, _end]
     date_list=[]
     _ = {}
     for row in data:
@@ -95,7 +96,8 @@ def retrieve_table_data(_dict, _list, table, start_date, end_date):
   else:
     print("Table does not exist user: {}".format(table))
     _list.extend([_start, _end])
-  return date_list
+  #return date_list
+  return _dict, _list
 
   
 def date_gaps(dates, _start, _end):

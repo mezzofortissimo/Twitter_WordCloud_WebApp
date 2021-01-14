@@ -56,7 +56,7 @@ def convert_dates(): #working
   return startdate, enddate
 
 punctuations = string.punctuation
-uninteresting_words = ["the", "a", "to", "if", "is", "it", "of", "and", "or", "an", "as", "me", "my",
+filter_1 = ["the", "a", "to", "if", "is", "it", "of", "and", "or", "an", "as", "me", "my",
     "our", "ours", "you", "your", "yours", "him", "his", "her", "hers", "its",
     "their", "what", "which", "who", "whom", "this", "that", "am", "are", "was", "were", "be", "been", "being",
     "have", "has", "had", "do", "does", "did", "but", "at", "by", "with", "from", "when", "where", "how",
@@ -64,7 +64,27 @@ uninteresting_words = ["the", "a", "to", "if", "is", "it", "of", "and", "or", "a
     "th","am","pm","s","t","on","in","for","so","while","let", "because", "there", "", "going", "like", "would","","than","doing","w",
     "yet","mr","ms","mrs","will","also","said","http"]
 
-def filter_tweets(tweet, word_filter, symbol_filter):
+def filter_tweets(_dict, level):
+  
+
+  _d = _dict
+  if level == 1:
+    for _word in filter_1:
+      if _word in _d.keys():
+        _d.pop(_word)
+  elif level == 2:
+    for _word in filter_2:
+      if _word in _d.keys():
+        _d.pop(_word)
+  elif level == 3:
+    for _word in filter_3:
+      if _word in _d.keys():
+        _d.pop(_word)
+  else:
+    return _dict
+  return _d
+
+def old_filter_tweets(tweet, word_filter, symbol_filter):
   temp_dict = {}
   new_string = ""
   uninteresting_words = word_filter
@@ -102,84 +122,54 @@ def filter_tweets(tweet, word_filter, symbol_filter):
 def clean_up_tweets(tweet):
   temp_dict = {}
   for word in tweet.lower().split():
-    n_1 = ""
-    n_2 = ""
-    word = decode_string(word)
-    if not word.isalpha():
-      #if "\n" in word:
-        #word = word.replace("\n"," ")
-      if "'s" in word:
-        word = word.replace("'s","")
-      if "@" in word:
-        word = word.replace(word, "")
-      if "http" in word:
-        word = word.replace(word, "")
-      if "#" in word:
-        word = word.replace(word, "")
-      if "'" in word:
-        word = word.replace("'", "")
-      if "\"" in word:
-        word = word.replace("\"", "")
-      if ")" in word:
-        word = word.replace(")", "")
-      if "'" in word:
-        word = word.replace("'", "")
-      if "." in word:
-          n_1, n_2 = word.split(".", maxsplit=1)
-          word = ""
-      if "," in word:
-          n_1, n_2 = word.split(",", maxsplit=1)
-          word = ""
-      if "+" in word:
-          n_1, n_2 = word.split("+", maxsplit=1)
-          word = ""
-      if "!" in word:
-          n_1, n_2 = word.split("!", maxsplit=1)
-          word = ""
-      if "/" in word:
-          n_1, n_2 = word.split("/", maxsplit=1)
-          word = ""
-      if "-" in word:
-          n_1, n_2 = word.split("-", maxsplit=1)
-          word = ""
-      if len(word) > 0:
-        if not word.isalpha():
-          word = "".join([char for char in word if char.isalpha()])
-        if word in temp_dict:
-          temp_dict[word] += 1
-        else:
-          temp_dict[word] = 1
-      else:
-        if len(n_1) > 0 and n_1.isalpha():
-          if n_1 in temp_dict:
-            temp_dict[n_1] += 1
-          else:
-            temp_dict[n_1] = 1
-        if len(n_2) > 0 and n_2.isalpha():
-          if n_2 in temp_dict:
-            temp_dict[n_2] += 1
-          else:
-            temp_dict[n_2] = 1
+    split_words = []
+
+    if "\\n\\n" in word:
+      n_1, n_2 = word.split("\\n\\n", maxsplit=1)    
+      split_words.append(bytes(n_1, 'utf-8').decode("unicode_escape"))
+      split_words.append(bytes(n_2, 'utf-8').decode("unicode_escape"))
     else:
-      if word in temp_dict:
-        temp_dict[word] += 1
+      split_words.append(bytes(word, 'utf-8').decode("unicode_escape"))
+    
+    for words in split_words:
+      if "@" in words:
+        words = words.replace(words, "")
+      if "http" in word:
+        words = words.replace(words, "")
+      if "#" in words:
+        words = words.replace(words, "")
+      if "amp" == words:
+        words = words.replace(words, "")
+      if not words.isalpha():
+        for punct in string.punctuation:
+          if punct in words:
+            w_1, w_2 = words.split("{}".format(punct), maxsplit=1)
+            words = ""
+            if not w_1.isalpha():
+              w_1 = "".join([char for char in w_1 if char.isalpha()])
+            if not w_2.isalpha():
+              w_2 = "".join([char for char in w_2 if char.isalpha()])
+      if len(words) > 0 and words.isalpha():
+        if words in temp_dict:
+          temp_dict[words] += 1
+        else:
+          temp_dict[words] = 1
       else:
-        temp_dict[word] = 1
-  print(temp_dict)
+        if 'w_1' and 'w_2' in locals():
+          if len(w_1) > 0 and w_1.isalpha():
+            if w_1 in temp_dict:
+              temp_dict[w_1] += 1
+            else:
+              temp_dict[w_2] = 1
+          if len(w_2) > 0 and w_2.isalpha():
+            if w_2 in temp_dict:
+              temp_dict[w_2] += 1
+            else:
+              temp_dict[w_2] = 1
   return temp_dict
 
-
-def decode_string(_string):
-  _string = bytes(_string, 'utf-8').decode("unicode_escape")
-  _string = html.unescape(_string.replace('\n', ' '))
-  return _string
-
 def scrape_tweets(user, startdate, enddate):
-  #global _dict
-  db_dict = {}
-  #global _list
-  _list = []
-  db_dict, _list = check_db_for_existing_data(db_dict, _list, user, startdate, enddate)
+  db_dict, _list = sql.retrieve_table_data(user, startdate, enddate)
   scrape_count = int(len(_list)/2)
   loaded_count = int(len(db_dict))
   print("Database checked: {} word counts loaded; Scrapes to be executed: {} [{}s]".format(loaded_count, scrape_count, check_timer(timer)))
@@ -195,17 +185,8 @@ def scrape_tweets(user, startdate, enddate):
   if scrape_count > 0:
     print("Scraping Complete [{}s]".format(check_timer(timer)))
 
-  print(raw_string)
+  #print(raw_string)
   return raw_string, db_dict
-
-def check_db_for_existing_data(_dict, _list, user, startdate, enddate): #working
-  sql.retrieve_table_data(_dict, _list, user, startdate, enddate)
-  #print(_dict)
-  #if len(_list) > 0:
-  #  return True, _dict, _list
-  #else:
-  #  return False, _dict, _list
-  return _dict, _list
 
 def process_raw_tweet_data(raw_data):
   pattern = '\"url\":\s*\S*{}\s*\S*\s*\"date\": \"(\d*-\d*-\d*)[\s*\S*]*?\"content\": \"([\s*\S*]*?)\"renderedContent\"'.format(args['user'])
@@ -222,22 +203,18 @@ def process_raw_tweet_data(raw_data):
     if _date == _[0]:
       new_string = new_string + _[1]
     else:
-      #_str = decode_string(new_string)
 
       _dict = clean_up_tweets(new_string)
-      #print("Here?") not hit
-      #_dict = filter_tweets(_str, uninteresting_words, punctuations)
+
       dated_list.append(("'{}'".format(_date), _dict))
       _date = _[0]
       new_string = _[1]
     count += 1
     if count == len(tweet_):
-      #_str = decode_string(new_string)
+
 
       _dict = clean_up_tweets(new_string)
-      #print("dict", _dict)
-      #print("Or Here") suspect
-      #_dict = filter_tweets(_str, uninteresting_words, punctuations)
+
       dated_list.append(("'{}'".format(_date), _dict))
       dated_list.sort()
   if len(tweet_) > 0:
@@ -262,7 +239,8 @@ def combine_dictionaries(dict_list, db_dict):
   for row in dict_list:
     new_dict = dict(Counter(row[1]) + Counter(new_dict))
   new_dict = dict(Counter(db_dict) + Counter(new_dict))
-  return new_dict
+  final_dict = filter_tweets(new_dict, 1)
+  return final_dict
 
 def create_wordcloud(wc_data_source):
   print("Processing Word Cloud [{}s]".format(check_timer(timer)))
@@ -275,7 +253,6 @@ def create_wordcloud(wc_data_source):
   plt.imshow(myimage, interpolation='nearest')
   plt.axis('off')
   img = io.BytesIO()
-  plt.savefig('img.png',facecolor='k', bbox_inches='tight', dpi=750)
   plt.savefig(img,facecolor='k', bbox_inches='tight', dpi=750)
   plt.close('all')
   img.seek(0)
@@ -310,7 +287,7 @@ def main(user, start, end, frequency, jsonl, csv):
   while _s <= _e:
     full_date_range.append("'{}'".format(_s.strftime('%Y-%m-%d')))
     _s = _s + timedelta(days=1)
-  print(full_date_range)
+  #print(full_date_range)
 
   global timer
   timer = start_timer()

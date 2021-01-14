@@ -20,6 +20,7 @@ def submit_username():
     frequency = request.form['frequency']
     #jsonl = request.form['jsonl'].lower()
     #csv = request.form['csv'].lower()
+    filterlevel = request.form['filter']
     jsonl = 'false'
     csv = 'false'
     if len(frequency) == 0:
@@ -28,7 +29,6 @@ def submit_username():
       jsonl = "false"
     if len(csv) == 0 or csv != "true":
       csv = "false"
-
     #user_input['username'] = request.form['username']
     #user_input['startdate'] = request.form['startdate']
     #user_input['enddate'] = request.form['enddate']
