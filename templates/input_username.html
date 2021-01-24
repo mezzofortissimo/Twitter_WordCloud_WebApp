@@ -76,7 +76,7 @@
     .form-inline, .line-input, .btn-block{
       font-family: "HelveticaNeue-CondensedBold", "HelveticaNeueBoldCondensed", "HelveticaNeue-Bold-Condensed", "Helvetica Neue Bold Condensed", "HelveticaNeueBold", "HelveticaNeue-Bold", "Helvetica Neue Bold", "HelveticaNeue", "Helvetica Neue", 'TeXGyreHerosCnBold', "Helvetica", "Tahoma", "Geneva", "Arial Narrow", "Arial", sans-serif; font-weight:600; font-stretch:condensed;
     }
-    
+
   </style>
   
   <head> 
@@ -96,12 +96,12 @@
         
         <div class="form-group">
           <h3>Start Date</h3>
-          <input type="date" id="_s" class="line-input" id="start" name="startdate" placeholder="Start YYYY-MM-DD" required>
+          <input type="date" id="_s" class="line-input" id="start" name="startdate" placeholder="Start YYYY-MM-DD" min='2006-03-21' max='2000-13-13' required>
         </div>                            
         
         <div class="form-group">
           <h3>End Date</h3>
-          <input type="date" id="_e" class="line-input" name="enddate" placeholder="End YYYY-MM-DD" required>
+          <input type="date" id="_e" class="line-input" name="enddate" placeholder="End YYYY-MM-DD" min='2000-13-13' max='2000-13-13' required>
         </div>
 
         <div class="form-group">
@@ -150,6 +150,25 @@
           _c.style.display = "none"
         }
       }
+      var today = new Date();
+      var dd = today.getDate();
+      var mm = today.getMonth()+1; //January is 0!
+      var yyyy = today.getFullYear();
+      if(dd<10){
+              dd='0'+dd
+          } 
+          if(mm<10){
+              mm='0'+mm
+          } 
+
+      today = yyyy+'-'+mm+'-'+dd;
+      document.getElementById("_e").setAttribute("max", today);
+      
+      document.getElementById("_s").onchange = function () {
+          var input = document.getElementById("_e");
+          input.setAttribute("min", this.value);
+      }
+      
      </script>
   </body>                                 
 </html>

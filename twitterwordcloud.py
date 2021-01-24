@@ -18,7 +18,6 @@ import urllib, base64
 import sqlite_db as sql
 import codecs
 import html
-#import datetime
 from collections import Counter
 import time
 
@@ -55,69 +54,38 @@ def convert_dates(): #working
 
   return startdate, enddate
 
-punctuations = string.punctuation
-filter_1 = ["the", "a", "to", "if", "is", "it", "of", "and", "or", "an", "as", "me", "my",
-    "our", "ours", "you", "your", "yours", "him", "his", "her", "hers", "its",
-    "their", "what", "which", "who", "whom", "this", "that", "am", "are", "was", "were", "be", "been", "being",
-    "have", "has", "had", "do", "does", "did", "but", "at", "by", "with", "from", "when", "where", "how",
-    "all", "any", "both", "each", "few", "more", "some", "such", "nor", "too", "very", "just",
-    "th","am","pm","s","t","on","in","for","so","while","let", "because", "there", "", "going", "like", "would","","than","doing","w",
-    "yet","mr","ms","mrs","will","also","said","http"]
+#punctuations = string.punctuation
 
-def filter_tweets(_dict, level):
+def load_word_filter(level):
+  pronouns = False
+  with open("filters/extras.txt", "r") as f:
+    word_filter = f.read().splitlines() 
   
+  if not level == "0":
+    if level == "1":
+      _ = "level1_100.txt"
+    elif level == "2":
+      _ = "level2_500.txt"
+      pronouns = True
+    elif level == "3":
+      _ = "level3_1000.txt"
+      pronouns = True
+    with open("filters/" + _, "r") as f:
+        word_filter.extend(f.read().splitlines())
+    if pronouns:
+      with open("filters/pronouns.txt", "r") as f:
+        word_filter.extend(f.read().splitlines())
 
+  return word_filter
+
+def filter_tweets(_dict, filter_level):
   _d = _dict
-  if level == 1:
-    for _word in filter_1:
-      if _word in _d.keys():
-        _d.pop(_word)
-  elif level == 2:
-    for _word in filter_2:
-      if _word in _d.keys():
-        _d.pop(_word)
-  elif level == 3:
-    for _word in filter_3:
-      if _word in _d.keys():
-        _d.pop(_word)
-  else:
-    return _dict
+  word_filter = load_word_filter(filter_level)
+  
+  for _word in word_filter:
+    if _word in _d.keys():
+      _d.pop(_word)
   return _d
-
-def old_filter_tweets(tweet, word_filter, symbol_filter):
-  temp_dict = {}
-  new_string = ""
-  uninteresting_words = word_filter
-  punctuations = symbol_filter
-  for word in tweet.lower().split():
-    if word.isalpha():
-      if word not in uninteresting_words:
-        if "http" not in word:
-          if word == "im":
-            word = word.replace("m","")
-          if word in temp_dict:
-            temp_dict[word] += 1
-          else:
-            temp_dict[word] = 1
-
-    else:
-      for symbol in punctuations:
-        if symbol in word:
-          if "#" not in word and "@" not in word and "&" not in word:
-            if "'s" in word:
-              new_string = word.replace("'s","")
-            else:
-              new_string = "".join([char for char in word if char.isalpha()])
-            if "http" not in new_string:
-              if new_string == "im":
-                new_string = new_string.replace("m","")
-
-              if new_string not in uninteresting_words:
-                if new_string in temp_dict:
-                  temp_dict[new_string] += 1
-                else:
-                  temp_dict[new_string] = 1
-  return temp_dict
 
 def clean_up_tweets(tweet):
   temp_dict = {}
@@ -185,14 +153,11 @@ def scrape_tweets(user, startdate, enddate):
   if scrape_count > 0:
     print("Scraping Complete [{}s]".format(check_timer(timer)))
 
-  #print(raw_string)
   return raw_string, db_dict
 
 def process_raw_tweet_data(raw_data):
   pattern = '\"url\":\s*\S*{}\s*\S*\s*\"date\": \"(\d*-\d*-\d*)[\s*\S*]*?\"content\": \"([\s*\S*]*?)\"renderedContent\"'.format(args['user'])
   tweet_ = re.findall(pattern, raw_data)
-  #print(tweet_)
-  #print("Tweet Tuples", tweet_) good
   dated_list = []
   count = 0
 
@@ -211,12 +176,11 @@ def process_raw_tweet_data(raw_data):
       new_string = _[1]
     count += 1
     if count == len(tweet_):
-
-
       _dict = clean_up_tweets(new_string)
-
       dated_list.append(("'{}'".format(_date), _dict))
-      dated_list.sort()
+
+      dated_list.sort(key=lambda tup: tup[0])
+      
   if len(tweet_) > 0:
     print("Raw Twitter Data Processed [{}s]".format(check_timer(timer)))
   update_database(args['user'], dated_list)
@@ -239,7 +203,7 @@ def combine_dictionaries(dict_list, db_dict):
   for row in dict_list:
     new_dict = dict(Counter(row[1]) + Counter(new_dict))
   new_dict = dict(Counter(db_dict) + Counter(new_dict))
-  final_dict = filter_tweets(new_dict, 1)
+  final_dict = filter_tweets(new_dict, args['filter_level'])
   return final_dict
 
 def create_wordcloud(wc_data_source):
@@ -261,11 +225,11 @@ def create_wordcloud(wc_data_source):
   print("Word Cloud Generated [{}s]".format(check_timer(timer)))
   return image_64
 
-def main(user, start, end, frequency, jsonl, csv):
+def main(user, start, end, frequency, jsonl, csv, filter_level):
   global word_frequency
   word_frequency ={}
 
-  keys = [user, start, end, frequency, jsonl, csv]
+  keys = [user, start, end, frequency, jsonl, csv, filter_level]
   global args
   args = {key: None for key in keys}
   args['user'] = user
@@ -276,6 +240,7 @@ def main(user, start, end, frequency, jsonl, csv):
   args['frequency'] = frequency
   args['jsonl'] = False
   args['csv'] = False
+  args['filter_level'] = filter_level
 
   start, end = convert_dates()
 
@@ -303,4 +268,4 @@ def main(user, start, end, frequency, jsonl, csv):
   return image, round(check_timer(timer), 2)
 
 if __name__ == '__main__':
-  main(user, start, end, frequency, jsonl, csv)
+  main(user, start, end, frequency, jsonl, csv, filter_level)
