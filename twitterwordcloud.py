@@ -22,14 +22,17 @@ from collections import Counter
 import time
 
 
-def start_timer(): #working
+def start_timer():
   start_time = time.time()
   return start_time
-def check_timer(start_time): #working
+
+
+def check_timer(start_time):
   check_time = round(time.time() - start_time, 4)
   return check_time
 
-def convert_dates(): #working
+
+def convert_dates():
   startdate = datetime.strptime(args['start'], "%Y-%m-%d").date()
 
   if args['end']:
@@ -54,7 +57,6 @@ def convert_dates(): #working
 
   return startdate, enddate
 
-#punctuations = string.punctuation
 
 def load_word_filter(level):
   pronouns = False
@@ -78,6 +80,7 @@ def load_word_filter(level):
 
   return word_filter
 
+
 def filter_tweets(_dict, filter_level):
   _d = _dict
   word_filter = load_word_filter(filter_level)
@@ -86,6 +89,7 @@ def filter_tweets(_dict, filter_level):
     if _word in _d.keys():
       _d.pop(_word)
   return _d
+
 
 def clean_up_tweets(tweet):
   temp_dict = {}
@@ -136,6 +140,7 @@ def clean_up_tweets(tweet):
               temp_dict[w_2] = 1
   return temp_dict
 
+
 def scrape_tweets(user, startdate, enddate):
   db_dict, _list = sql.retrieve_table_data(user, startdate, enddate)
   scrape_count = int(len(_list)/2)
@@ -155,8 +160,9 @@ def scrape_tweets(user, startdate, enddate):
 
   return raw_string, db_dict
 
+
 def process_raw_tweet_data(raw_data):
-  pattern = '\"url\":\s*\S*{}\s*\S*\s*\"date\": \"(\d*-\d*-\d*)[\s*\S*]*?\"content\": \"([\s*\S*]*?)\"renderedContent\"'.format(args['user'])
+  pattern = r'\"url\":\s*\S*{}\s*\S*\s*\"date\": \"(\d*-\d*-\d*)[\s*\S*]*?\"content\": \"([\s*\S*]*?)\"renderedContent\"'.format(args['user'])
   tweet_ = re.findall(pattern, raw_data)
   dated_list = []
   count = 0
@@ -186,6 +192,7 @@ def process_raw_tweet_data(raw_data):
   update_database(args['user'], dated_list)
   return dated_list
 
+
 def update_database(user, data):
   for item in data:
     sql.add_data_to_row(user, item[0], item[1])
@@ -198,6 +205,7 @@ def update_database(user, data):
     post_size = round((os.stat('twitter_users').st_size)/1000000, 2)
     print("The database is now {}mb after adding {}mb".format(post_size, post_size - pre_size))
 
+
 def combine_dictionaries(dict_list, db_dict):
   new_dict = {}
   for row in dict_list:
@@ -205,6 +213,7 @@ def combine_dictionaries(dict_list, db_dict):
   new_dict = dict(Counter(db_dict) + Counter(new_dict))
   final_dict = filter_tweets(new_dict, args['filter_level'])
   return final_dict
+
 
 def create_wordcloud(wc_data_source):
   print("Processing Word Cloud [{}s]".format(check_timer(timer)))
@@ -224,6 +233,7 @@ def create_wordcloud(wc_data_source):
   image_64 = string.decode('utf-8')
   print("Word Cloud Generated [{}s]".format(check_timer(timer)))
   return image_64
+
 
 def main(user, start, end, frequency, jsonl, csv, filter_level):
   global word_frequency
@@ -267,5 +277,6 @@ def main(user, start, end, frequency, jsonl, csv, filter_level):
 
   return image, round(check_timer(timer), 2)
 
-if __name__ == '__main__':
-  main(user, start, end, frequency, jsonl, csv, filter_level)
+
+#if __name__ == '__main__':
+#  main(user, start, end, frequency, jsonl, csv, filter_level)
